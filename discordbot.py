@@ -271,8 +271,6 @@ async def on_message(message): #Called whenever a message is sent.
     if message.author == client.user: #If the message is from the bot:
         return #Ignore it
     await client.process_commands(message) #Process the message to see if it contains any commands.
-    #print(message)
-    #await message.reply("wanna play roblox")
     if message.content == 'Selenity': #Basic Selenity response
         await message.channel.send("Whats up, " + message.author.mention + "?")
     Cursor = database.cursor(buffered=True) #Initialize instance to interact with database, buffered allows object to be declared multiple times during runtime.
