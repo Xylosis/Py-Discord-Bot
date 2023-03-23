@@ -6,6 +6,7 @@ import random
 import os #For finding .env
 from dotenv import load_dotenv,find_dotenv 
 import mysql.connector
+from mysql.connector import errors
 #import requests
 #import json
 
@@ -301,7 +302,7 @@ async def on_message(message): #Called whenever a message is sent.
          updatelevelsql = "UPDATE initialtable SET userlevel = userlevel + 1 WHERE discordID = %s" #Update level
          Cursor.execute(updatelevelsql, [userID])
          database.commit() #Commit change to database
-         #await message.channel.send("Congrats, " + message.author.mention + "! You leveled up to level " + str(level+1) + ". You have no life fucking bozo.") #congrats message
+         await message.channel.send("Congrats, " + message.author.mention + "! You leveled up to level " + str(level+1) + ". You have no life fucking bozo.") #congrats message
 
     #----LEVEL BENCHMARKS----
 
@@ -324,6 +325,155 @@ async def on_message_edit(before,after):
     await adminChannel.send("MESSAGE CHANGE LOG:\nUser: " + before.author.name + "#" + before.author.discriminator + " EDITTED MESSAGE FROM: \"" +before.content + "\"  TO: \"" + after.content + "\"." )
 
 #---------------------END OF ADMIN------------------------
+
+#-------------------------LEAGUE-------------------------
+
+#TODO: write a function removeChamp to remove from List, webscraper for u.gg to find counters, and a function versing to show counters to champ argument using Webscraper
+#and for function versing, it'll highlight what champs you play to focus on those first.
+
+def getChampsOfUser(ctx):
+    Cursor = database.cursor(buffered=True)
+    userID = ctx.message.author.id
+    try:
+        addsql = "INSERT INTO leagueTable (discordID) VALUES (%s)" #Insert authors discordID into database.
+        Cursor.execute(addsql,[userID])
+        database.commit()
+        print("User " + str(ctx.message.author.name) + " added to database.")
+    except errors.IntegrityError: 
+        pass
+    getChamps = "SELECT bestChamps,comfortable,canPlay FROM leagueTable WHERE discordID = %s"
+    Cursor.execute(getChamps, [userID])
+    for x in Cursor:
+        champs= x
+    bestChamps = ''
+    comfyChamps = ''
+    playableChamps = ''
+    if champs == None:
+        return False, False, False, False
+    if x[0] != None:
+        bestChamps = x[0].split(",")
+    if x[1] != None:
+        comfyChamps = x[1].split(",")
+    if x[2] != None:
+        playableChamps = x[2].split(",")
+    
+    return x, bestChamps, comfyChamps, playableChamps
+
+@client.command()
+async def champs(ctx):
+    '''
+    Cursor = database.cursor(buffered=True)
+    userID = ctx.message.author.id
+    print(userID)
+    try:
+        addsql = "INSERT INTO leagueTable (discordID) VALUES (%s)" #Insert authors discordID into database.
+        Cursor.execute(addsql,[userID])
+        database.commit()
+        print("User " + str(ctx.message.author.name) + " added to database.")
+    except errors.IntegrityError: 
+        pass
+    getChamps = "SELECT bestChamps,comfortable,canPlay FROM leagueTable WHERE discordID = %s"
+    Cursor.execute(getChamps, [userID])
+    for x in Cursor:
+        champs= x
+    if champs == None:
+        await ctx.message.channel.send("What champs do you play bro? Lemme know.")
+        await ctx.message.channel.send('Type "Selenity addChamps best:[champ1,champ2,etc.] comfortable:[champ1,champ2] playable:[champ1,champ2]" in that exact syntax. :)')
+        return
+    if x[0] != None:
+        bestChamps = x[0].split(",")
+    if x[1] != None:
+        comfyChamps = x[1].split(",")
+    if x[2] != None:
+        playableChamps = x[2].split(",")
+    '''
+    x, bestChamps, comfyChamps, playableChamps = getChampsOfUser(ctx)
+    if x == False and bestChamps == False and comfyChamps == False and playableChamps == False:
+        await ctx.message.channel.send("What champs do you play bro? Lemme know.")
+        await ctx.message.channel.send('Type "Selenity addChamps best:[champ1,champ2,etc.] comfortable:[champ1,champ2] playable:[champ1,champ2]" in that exact syntax. :)')
+        return
+    await ctx.message.channel.send(ctx.message.author.mention)
+    await ctx.message.channel.send("Your best champs are: " + str(x[0]))
+    await ctx.message.channel.send("The champs you're comfortable with are: " + str(x[1]))
+    #if x[2] != None:
+    await ctx.message.channel.send("The champs you caaaaann play but you'll look like a donut playing them are: " + str(x[2]))
+
+@client.command()
+async def addChamps(ctx):
+    await ctx.message.channel.send('Type "Selenity addChamps best: [champ1,champ2,etc.] comfortable:[champ1,champ2] playable:[champ1,champ2]" in that exact syntax. :)')
+    usermessage = ctx.message.content.split(" ")
+    print(usermessage)
+    bestflag = False
+    comfyflag = False
+    playableflag = False
+    bestarr = ''
+    comfyarr = ''
+    playablearr = ''
+    for word in usermessage:
+        word = word.strip(",")
+        if 'best' in word.lower():
+            bestflag = True
+            comfyflag = False
+            playableflag = False
+            continue
+        elif 'comfortable' in word.lower():
+            comfyflag = True
+            bestflag = False
+            playableflag = False
+            continue
+        elif 'playable' in word.lower():
+            playableflag = True
+            comfyflag = False
+            bestflag = False
+            continue
+        if bestflag == True:
+            if bestarr == '':
+                bestarr = word
+                continue
+            bestarr += ", " + word
+            continue
+        elif comfyflag == True:
+            if comfyarr == '':
+                comfyarr = word
+                continue
+            comfyarr += ", " + word
+            continue
+        elif playableflag == True:
+            if playablearr == '':
+                playablearr = word
+                continue
+            playablearr += ", " + word
+            continue
+    print("best:", bestarr)
+    print("comfy:", comfyarr)
+    print("playable:", playablearr)
+    
+    x, bestChamps, comfyChamps, playableChamps = getChampsOfUser(ctx)
+    
+    Cursor = database.cursor(buffered=True)
+    modifySQL = "#UPDATE leagueTable SET bestChamps = 'Anivia, Kassadin' WHERE discordID=190667049389785088"
+
+    for champ in bestChamps:
+        if champ in bestarr:
+            await ctx.message.channel.send("You already have " + str(champ) + ' in your list of best champs. To see your list, type "Selenity champs".. dumbass.')
+            return
+        elif champ in comfyarr:
+            #Use modifySQL to switch the champ thats in bestChamps to ComfyChamps
+            pass
+        elif champ in playablearr:
+            #Use modifySQL to switch the champ thats in bestChamps to PlayableChamps
+            pass
+    #write two more for loops to do the same thing as above to their respective lists.
+
+    if x[0] != None:
+        print("best:", bestarr + ", " +  x[0])
+    if x[1] != None:
+        print("comfy:", comfyarr + ", " +  x[1])
+    if x[2] != None:
+        print("playable:", playablearr + ", " + x[2])
+
+
+#----------------------END OF LEAGUE----------------------
 
 #----------------------INITIALIZE-------------------------
 
