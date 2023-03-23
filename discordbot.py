@@ -361,36 +361,10 @@ def getChampsOfUser(ctx):
 
 @client.command()
 async def champs(ctx):
-    '''
-    Cursor = database.cursor(buffered=True)
-    userID = ctx.message.author.id
-    print(userID)
-    try:
-        addsql = "INSERT INTO leagueTable (discordID) VALUES (%s)" #Insert authors discordID into database.
-        Cursor.execute(addsql,[userID])
-        database.commit()
-        print("User " + str(ctx.message.author.name) + " added to database.")
-    except errors.IntegrityError: 
-        pass
-    getChamps = "SELECT bestChamps,comfortable,canPlay FROM leagueTable WHERE discordID = %s"
-    Cursor.execute(getChamps, [userID])
-    for x in Cursor:
-        champs= x
-    if champs == None:
-        await ctx.message.channel.send("What champs do you play bro? Lemme know.")
-        await ctx.message.channel.send('Type "Selenity addChamps best:[champ1,champ2,etc.] comfortable:[champ1,champ2] playable:[champ1,champ2]" in that exact syntax. :)')
-        return
-    if x[0] != None:
-        bestChamps = x[0].split(",")
-    if x[1] != None:
-        comfyChamps = x[1].split(",")
-    if x[2] != None:
-        playableChamps = x[2].split(",")
-    '''
     x, bestChamps, comfyChamps, playableChamps = getChampsOfUser(ctx)
     if x == False and bestChamps == False and comfyChamps == False and playableChamps == False:
         await ctx.message.channel.send("What champs do you play bro? Lemme know.")
-        await ctx.message.channel.send('Type "Selenity addChamps best:[champ1,champ2,etc.] comfortable:[champ1,champ2] playable:[champ1,champ2]" in that exact syntax. :)')
+        await ctx.message.channel.send('Type "Selenity addChamps best: champ1, champ2, ... comfortable: champ1 champ2 ... playable: champ1 champ2 ..." in that exact syntax. :)')
         return
     await ctx.message.channel.send(ctx.message.author.mention)
     await ctx.message.channel.send("Your best champs are: " + str(x[0]))
@@ -400,7 +374,7 @@ async def champs(ctx):
 
 @client.command()
 async def addChamps(ctx):
-    await ctx.message.channel.send('Type "Selenity addChamps best: [champ1,champ2,etc.] comfortable:[champ1,champ2] playable:[champ1,champ2]" in that exact syntax. :)')
+    await ctx.message.channel.send('Type "Selenity addChamps best: champ1, champ2, ... comfortable: champ1 champ2 ... playable: champ1 champ2 ..." in that exact syntax. :)')
     usermessage = ctx.message.content.split(" ")
     print(usermessage)
     bestflag = False
