@@ -328,9 +328,9 @@ async def on_message_edit(before,after):
 
 #-------------------------LEAGUE-------------------------
 
-#TODO: write a function removeChamp to remove from List, webscraper for u.gg to find counters, and a function versing to show counters to champ argument using Webscraper
+#TO DO: write a function removeChamp to remove from List, webscraper for u.gg to find counters, and a function versing to show counters to champ argument using Webscraper
 #and for function versing, it'll highlight what champs you play to focus on those first.
-
+#u.gg class="champion-name" for the counters on their website.
 def getChampsOfUser(ctx):
     Cursor = database.cursor(buffered=True)
     userID = ctx.message.author.id
