@@ -525,8 +525,6 @@ async def removeChamps(ctx):
                 else:
                     removeSQL = "UPDATE leagueTable SET playable = %s WHERE discordID=%s"
                     Cursor.execute(removeSQL, [sqlString,userID])
-            #modifySQL = "UPDATE leagueTable SET best = 'Anivia, Kassadin' WHERE discordID=190667049389785088"
-            pass
         else:
             await ctx.message.channel.send(str(champ) + " isn't in your list of " + str(table) + " champs you donut.")
 
