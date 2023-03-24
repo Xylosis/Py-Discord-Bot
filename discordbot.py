@@ -2,6 +2,7 @@
 
 import discord
 from discord.ext import commands
+from discord import app_commands
 import random
 import os #For finding .env
 from dotenv import load_dotenv,find_dotenv 
@@ -328,9 +329,9 @@ async def on_message_edit(before,after):
 
 #-------------------------LEAGUE-------------------------
 
-#TODO: write a function removeChamp to remove from List, webscraper for u.gg to find counters, and a function versing to show counters to champ argument using Webscraper
+#TO DO: write a function removeChamp to remove from List, webscraper for u.gg to find counters, and a function versing to show counters to champ argument using Webscraper
 #and for function versing, it'll highlight what champs you play to focus on those first.
-
+#u.gg class="champion-name" for the counters on their website.
 def getChampsOfUser(ctx):
     Cursor = database.cursor(buffered=True)
     userID = ctx.message.author.id
@@ -341,7 +342,7 @@ def getChampsOfUser(ctx):
         print("User " + str(ctx.message.author.name) + " added to database.")
     except errors.IntegrityError: 
         pass
-    getChamps = "SELECT bestChamps,comfortable,canPlay FROM leagueTable WHERE discordID = %s"
+    getChamps = "SELECT best,comfortable,playable FROM leagueTable WHERE discordID = %s"
     Cursor.execute(getChamps, [userID])
     for x in Cursor:
         champs= x
@@ -351,11 +352,11 @@ def getChampsOfUser(ctx):
     if champs == None:
         return False, False, False, False
     if x[0] != None:
-        bestChamps = x[0].split(",")
+        bestChamps = x[0].split(", ")
     if x[1] != None:
-        comfyChamps = x[1].split(",")
+        comfyChamps = x[1].split(", ")
     if x[2] != None:
-        playableChamps = x[2].split(",")
+        playableChamps = x[2].split(", ")
     
     return x, bestChamps, comfyChamps, playableChamps
 
@@ -368,18 +369,25 @@ async def champs(ctx):
         return
     await ctx.message.channel.send(ctx.message.author.mention)
     await ctx.message.channel.send("Your best champs are: " + str(x[0]))
-    await ctx.message.channel.send("The champs you're comfortable with are: " + str(x[1]))
+    if x[1] == "":
+        await ctx.message.channel.send("The champs you're comfortable with are: None")
+    else:
+        await ctx.message.channel.send("The champs you're comfortable with are: " + str(x[1]))
     #if x[2] != None:
     await ctx.message.channel.send("The champs you caaaaann play but you'll look like a donut playing them are: " + str(x[2]))
 
 @client.command()
 async def addChamps(ctx):
-    await ctx.message.channel.send('Type "Selenity addChamps best: champ1, champ2, ... comfortable: champ1 champ2 ... playable: champ1 champ2 ..." in that exact syntax. :)')
+    await ctx.message.channel.send('Type: "Selenity addChamps best: champ1, champ2, ... comfortable: champ1 champ2 ... playable: champ1 champ2 ..." in that exact syntax. :)')
+    await ctx.message.channel.send('To remove champs, type: "Selenity removeChamps champ1 champ2 champ3 ... from [best / comfortable / playable]"')
     usermessage = ctx.message.content.split(" ")
     print(usermessage)
     bestflag = False
     comfyflag = False
     playableflag = False
+    saidbest = False
+    saidcomfy=False
+    saidplayable=False
     bestarr = ''
     comfyarr = ''
     playablearr = ''
@@ -389,16 +397,19 @@ async def addChamps(ctx):
             bestflag = True
             comfyflag = False
             playableflag = False
+            saidbest=True
             continue
         elif 'comfortable' in word.lower():
             comfyflag = True
             bestflag = False
             playableflag = False
+            saidcomfy=True
             continue
         elif 'playable' in word.lower():
             playableflag = True
             comfyflag = False
             bestflag = False
+            saidplayable=True
             continue
         if bestflag == True:
             if bestarr == '':
@@ -424,20 +435,23 @@ async def addChamps(ctx):
     
     x, bestChamps, comfyChamps, playableChamps = getChampsOfUser(ctx)
     
-    Cursor = database.cursor(buffered=True)
-    modifySQL = "#UPDATE leagueTable SET bestChamps = 'Anivia, Kassadin' WHERE discordID=190667049389785088"
+    #Cursor = database.cursor(buffered=True)
+    #modifySQL = "#UPDATE leagueTable SET best = 'Anivia, Kassadin' WHERE discordID=190667049389785088"
 
-    for champ in bestChamps:
-        if champ in bestarr:
-            await ctx.message.channel.send("You already have " + str(champ) + ' in your list of best champs. To see your list, type "Selenity champs".. dumbass.')
-            return
-        elif champ in comfyarr:
-            #Use modifySQL to switch the champ thats in bestChamps to ComfyChamps
-            pass
-        elif champ in playablearr:
-            #Use modifySQL to switch the champ thats in bestChamps to PlayableChamps
-            pass
-    #write two more for loops to do the same thing as above to their respective lists.
+    if saidbest == True:
+        for champ in bestChamps:
+            if champ in bestarr:
+                await ctx.message.channel.send("You already have " + str(champ) + ' in your list of best champs. To see your list, type "Selenity champs".. dumbass.')
+                return
+            elif champ in comfyarr:
+                #Use modifySQL to switch the champ thats in bestChamps to ComfyChamps
+                removeSQL = ""
+                pass
+            elif champ in playablearr:
+                #Use modifySQL to switch the champ thats in bestChamps to PlayableChamps
+                pass
+        #write two more for loops to do the same thing as above to their respective lists.
+                
 
     if x[0] != None:
         print("best:", bestarr + ", " +  x[0])
@@ -447,8 +461,92 @@ async def addChamps(ctx):
         print("playable:", playablearr + ", " + x[2])
 
 
+@client.command()
+async def removeChamps(ctx):
+    usermessage = ctx.message.content.split(" ")
+    usermessage.remove("Selenity")
+    usermessage.remove("removeChamps")
+    usermessage.remove("from")
+    table = usermessage.pop(-1).lower()
+    reqChamps = usermessage
+    x, bestChamps, comfyChamps, playableChamps = getChampsOfUser(ctx)
+    print(bestChamps)
+    primarytable = ""
+    if x[0] != None:
+        print("best:", x[0])
+    if x[1] != None:
+        print("comfy:", x[1])
+    if x[2] != None:
+        print("playable:", x[2])
+    newString = ""
+    if table == "best":
+        primarytable = bestChamps
+        newString = x[0]
+    elif table == "comfortable":
+        primarytable = comfyChamps
+        newString = x[1]
+    elif table == "playable":
+        primarytable = playableChamps
+        newString = x[2]
+    else:
+        await ctx.message.channel.send("You didn't include a table to remove from you numbnut.")
+    
+    newTable = primarytable
+    print("PRIM TABLE: ", primarytable)
+    print("LEN PRIM TABLE: ", len(primarytable))
+    for champ in reqChamps:
+        if champ in primarytable:
+            Cursor = database.cursor(buffered=True)
+            userID = ctx.message.author.id
+            newTable.remove(champ)
+            print(newTable)
+            sqlString = "".join(str(e) + ", " for e in newTable)
+            print(sqlString)
+            sqlString = sqlString[:-2]
+            print(sqlString)
+            if table == "best":
+                if len(primarytable) == 0:
+                    removeSQL = "UPDATE leagueTable SET best = NULL WHERE discordID=%s"
+                    Cursor.execute(removeSQL, [userID])
+                else:
+                    removeSQL = "UPDATE leagueTable SET best = %s WHERE discordID=%s"
+                    Cursor.execute(removeSQL, [sqlString,userID])
+            elif table == "comfortable":
+                if len(primarytable) == 0:
+                    removeSQL = "UPDATE leagueTable SET comfortable = NULL WHERE discordID=%s"
+                    Cursor.execute(removeSQL, [userID])
+                else:
+                    removeSQL = "UPDATE leagueTable SET comfortable = %s WHERE discordID=%s"
+                    Cursor.execute(removeSQL, [sqlString,userID])
+            elif table == "playable":
+                if len(primarytable) == 0:
+                    removeSQL = "UPDATE leagueTable SET playable = NULL WHERE discordID=%s"
+                    Cursor.execute(removeSQL, [userID])
+                else:
+                    removeSQL = "UPDATE leagueTable SET playable = %s WHERE discordID=%s"
+                    Cursor.execute(removeSQL, [sqlString,userID])
+            #modifySQL = "UPDATE leagueTable SET best = 'Anivia, Kassadin' WHERE discordID=190667049389785088"
+            pass
+        else:
+            await ctx.message.channel.send(str(champ) + " isn't in your list of " + str(table) + " champs you donut.")
+
 #----------------------END OF LEAGUE----------------------
 
+
+#----------------------DEV BADGE-----------------------
+'''
+@client.slash_command(name="first_slash",guild_ids=[1064722690751082597]) #https://stackoverflow.com/questions/71165431/how-do-i-make-a-working-slash-command-in-discord-py PYCORD
+async def first_slash(ctx):
+    await ctx.respond("You executed the slash command!")
+
+#If above command doesn't work for slash command, try this bottom one. but uncomment line 27 (the tree one) first.
+#LINE 27
+
+@client.command(name = "commandname", description = "My first application Command", guild=discord.Object(id=1064722690751082597)) #Add the guild ids in which the slash command will appear. If it should be in all, remove the argument, but note that it will take some time (up to an hour) to register the command if it's for all guilds.
+async def first_command(interaction):
+    await interaction.response.send_message("Hello!")
+'''
+#-------------------END OF DEV BADGE--------------------
 #----------------------INITIALIZE-------------------------
 
 client.run(key) #Start bot using key grabbed from .env file.
