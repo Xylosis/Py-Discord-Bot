@@ -363,14 +363,14 @@ def getChampsOfUser(ctx):
 @client.command()
 async def showCommands(ctx):
     channel = ctx.message.channel
-    await channel.send('For league:\n\nVIEW CHAMPS: Type "Selenity champs" to view all your champs.\n\nADD CHAMPS: Type "Selenity addChamps best: champ1, champ2, ... comfortable: champ1 champ2 ... playable: champ1 champ2 ..." in that exact syntax.\n\nREMOVE CHAMPS: Type "Selenity removeChamps champ1 champ2 champ3 ... from [best / comfortable / playable]"\n\nCLEAR ROWS: To clear a row of champs, Type "Selenity clearChamps from [best / comfortable / playable / all]"')
+    await channel.send('For league:\n\nVIEW CHAMPS: Type ">champs" to view all your champs.\n\nADD CHAMPS: Type ">addChamps best: champ1 champ2 ... comfortable: champ1 champ2 ... playable: champ1 champ2 ..." in that exact syntax.\n\nREMOVE CHAMPS: Type ">removeChamps champ1 champ2 champ3 ... from [best / comfortable / playable]"\n\nCLEAR ROWS: To clear a row of champs, Type ">clearChamps from [best / comfortable / playable / all]"')
 
 @client.command()
 async def champs(ctx):
     x, bestChamps, comfyChamps, playableChamps = getChampsOfUser(ctx)
     if x == False and bestChamps == False and comfyChamps == False and playableChamps == False:
         await ctx.message.channel.send("What champs do you play bro? Lemme know.")
-        await ctx.message.channel.send('Type "Selenity addChamps best: champ1, champ2, ... comfortable: champ1 champ2 ... playable: champ1 champ2 ..." in that exact syntax. :)')
+        await ctx.message.channel.send('Type ">addChamps best: champ1, champ2, ... comfortable: champ1 champ2 ... playable: champ1 champ2 ..." in that exact syntax. :)')
         return
     await ctx.message.channel.send(ctx.message.author.mention)
     await ctx.message.channel.send("Your best champs are: " + str(x[0]))
@@ -383,11 +383,8 @@ async def champs(ctx):
 
 @client.command()
 async def addChamps(ctx):
-    await ctx.message.channel.send('Type: "Selenity addChamps best: champ1, champ2, ... comfortable: champ1 champ2 ... playable: champ1 champ2 ..." in that exact syntax. :)')
-    await ctx.message.channel.send('To remove champs, type: "Selenity removeChamps champ1 champ2 champ3 ... from [best / comfortable / playable]"')
     usermessage = ctx.message.content.split(" ")
     userID = ctx.message.author.id
-    print(usermessage)
     bestflag = False
     comfyflag = False
     playableflag = False
@@ -400,7 +397,6 @@ async def addChamps(ctx):
     for word in usermessage:
         word = word.strip(",")
         if 'best' in word.lower():
-            print("HI IM HERE")
             bestflag = True
             comfyflag = False
             playableflag = False
@@ -436,15 +432,11 @@ async def addChamps(ctx):
                 continue
             playablearr += ", " + word
             continue
-    print("best:", bestarr)
-    print("comfy:", comfyarr)
-    print("playable:", playablearr)
     
     x, bestChamps, comfyChamps, playableChamps = getChampsOfUser(ctx)
     
     Cursor = database.cursor(buffered=True)
     #modifySQL = "#UPDATE leagueTable SET best = 'Anivia, Kassadin' WHERE discordID=190667049389785088"
-    print(x[0])
     if saidbest == True:
         if x[0] != None:
             newSQLString = x[0] + ", "
@@ -452,7 +444,7 @@ async def addChamps(ctx):
             newSQLString = ''
         for champ in bestChamps:
             if champ in bestarr:
-                await ctx.message.channel.send("You already have " + str(champ) + ' in your list of best champs. To see your list, type "Selenity champs".. dumbass.')
+                await ctx.message.channel.send("You already have " + str(champ) + ' in your list of best champs. To see your list, type ">champs".. dumbass.')
                 return
         newSQLString += bestarr
         addSQL = "UPDATE leagueTable SET best = %s WHERE discordID=%s"
@@ -464,7 +456,7 @@ async def addChamps(ctx):
             newSQLString = ''
         for champ in comfyChamps:
             if champ in comfyarr:
-                await ctx.message.channel.send("You already have " + str(champ) + ' in your list of comfortable champs. To see your list, type "Selenity champs".. dumbass.')
+                await ctx.message.channel.send("You already have " + str(champ) + ' in your list of comfortable champs. To see your list, type ">champs".. dumbass.')
                 return
         newSQLString += comfyarr
         addSQL = "UPDATE leagueTable SET comfortable = %s WHERE discordID=%s"
@@ -476,26 +468,18 @@ async def addChamps(ctx):
             newSQLString = ''
         for champ in playableChamps:
             if champ in playablearr:
-                await ctx.message.channel.send("You already have " + str(champ) + ' in your list of playable champs. To see your list, type "Selenity champs".. dumbass.')
+                await ctx.message.channel.send("You already have " + str(champ) + ' in your list of playable champs. To see your list, type ">champs".. dumbass.')
                 return
         newSQLString += playablearr
         addSQL = "UPDATE leagueTable SET playable = %s WHERE discordID=%s"
         Cursor.execute(addSQL, [newSQLString, userID])
-
-    print("AFTER NEWSQL: " + newSQLString)
-
-    if x[0] != None:
-        print("(x[0])best:", bestarr + ", " +  x[0])
-    if x[1] != None:
-        print("comfy:", comfyarr + ", " +  x[1])
-    if x[2] != None:
-        print("playable:", playablearr + ", " + x[2])
+    await ctx.message.channel.send("Champions were added to their respective rows, " + ctx.message.author.mention + ".")
 
 @client.command()
 async def clearChamps(ctx):
     usermessage = ctx.message.content.split(" ")
-    usermessage.remove("Selenity")
-    usermessage.remove("clearChamps")
+    #usermessage.remove("Selenity")
+    usermessage.remove(">clearChamps")
     usermessage.remove("from")
     table = usermessage.pop(-1).lower()
     Cursor = database.cursor(buffered=True)
@@ -519,20 +503,13 @@ async def clearChamps(ctx):
 @client.command()
 async def removeChamps(ctx):
     usermessage = ctx.message.content.split(" ")
-    usermessage.remove("Selenity")
-    usermessage.remove("removeChamps")
+    #usermessage.remove("Selenity")
+    usermessage.remove(">removeChamps")
     usermessage.remove("from")
     table = usermessage.pop(-1).lower()
     reqChamps = usermessage
     x, bestChamps, comfyChamps, playableChamps = getChampsOfUser(ctx)
-    print(bestChamps)
     primarytable = ""
-    if x[0] != None:
-        print("best:", x[0])
-    if x[1] != None:
-        print("comfy:", x[1])
-    if x[2] != None:
-        print("playable:", x[2])
     newString = ""
     if table == "best":
         primarytable = bestChamps
@@ -545,22 +522,17 @@ async def removeChamps(ctx):
         newString = x[2]
     else:
         await ctx.message.channel.send("You didn't include a table to remove from you numbnut.")
+        await ctx.message.channel.send('Type ">showCommands" for a list of commands for league.')
     msgString = "" #added since last run
     newTable = primarytable
-    print("PRIM TABLE: ", primarytable)
-    print("LEN PRIM TABLE: ", len(primarytable))
     for champ in reqChamps:
         msgString += str(champ) + ", "
         if champ in primarytable:
             Cursor = database.cursor(buffered=True)
             userID = ctx.message.author.id
             newTable.remove(champ)
-            print(newTable)
             sqlString = "".join(str(e) + ", " for e in newTable)
-            
-            print(sqlString)
             sqlString = sqlString[:-2]
-            print(sqlString) #added since last run
             if table == "best":
                 if len(primarytable) == 0:
                     removeSQL = "UPDATE leagueTable SET best = NULL WHERE discordID=%s"
@@ -585,7 +557,6 @@ async def removeChamps(ctx):
         else:
             await ctx.message.channel.send(str(champ) + " isn't in your list of " + str(table) + " champs you donut.")
             return
-        print("MESSAGE STRING: " + msgString)
         await ctx.message.channel.send("Successfully removed " + str(msgString[:-2]) + " from " + str(table) + ", " + ctx.message.author.mention + ".") #added since last run
 
 #----------------------END OF LEAGUE----------------------
