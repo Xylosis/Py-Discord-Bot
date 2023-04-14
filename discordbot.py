@@ -583,10 +583,6 @@ async def verse(ctx):
     for champ in playableList:
         totalList.append(champ.lower())
 
-    print(totalList)
-    print(bestList)
-    print(comfyList)
-    print(playableList)
     try:
         await ctx.message.channel.send("In **"+ str(role) + "**, **" + str(champList.pop(0)) + "** has a:")
     except IndexError:
