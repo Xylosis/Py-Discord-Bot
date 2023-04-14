@@ -322,7 +322,7 @@ def levelhandler(messagecount, level):
 
 @client.event
 async def on_message_edit(before,after):
-    adminChannel = client.get_channel(1056003072951844876) #Hardcoded admin channel channelID
+    adminChannel = client.get_channel(1088517953647038516) #Hardcoded admin channel channelID
     await adminChannel.send("MESSAGE CHANGE LOG:\nUser: " + before.author.name + "#" + before.author.discriminator + " EDITTED MESSAGE FROM: \"" +before.content + "\"  TO: \"" + after.content + "\"." )
 
 #---------------------END OF ADMIN------------------------
@@ -363,7 +363,7 @@ def getChampsOfUser(ctx):
 @client.command()
 async def showCommands(ctx):
     channel = ctx.message.channel
-    await channel.send('For league:\n\nVIEW CHAMPS: Type ">champs" to view all your champs.\n\nADD CHAMPS: Type ">addChamps best: champ1 champ2 ... comfortable: champ1 champ2 ... playable: champ1 champ2 ..." in that exact syntax.\n\nREMOVE CHAMPS: Type ">removeChamps champ1 champ2 champ3 ... from [best / comfortable / playable]"\n\nCLEAR ROWS: To clear a row of champs, Type ">clearChamps from [best / comfortable / playable / all]"')
+    await channel.send('For league:\n\nVIEW CHAMPS: Type ">champs" to view all your champs.\n\nADD CHAMPS: Type ">addChamps best: champ1 champ2 ... comfortable: champ1 champ2 ... playable: champ1 champ2 ..." in that exact syntax.\n\nREMOVE CHAMPS: Type ">removeChamps champ1 champ2 champ3 ... from [best / comfortable / playable]"\n\nCLEAR ROWS: To clear a row of champs, Type ">clearChamps from [best / comfortable / playable / all]"\n\n COUNTERS: Type ">verse [champ name (NO SPACES OR APOSTROPHE)] in [role]"')
 
 @client.command()
 async def champs(ctx):
@@ -559,6 +559,44 @@ async def removeChamps(ctx):
             return
         await ctx.message.channel.send("Successfully removed " + str(msgString[:-2]) + " from " + str(table) + ", " + ctx.message.author.mention + ".") #added since last run
 
+@client.command()
+async def verse(ctx):
+    from uggwebscraper import get_ugg_stats
+    
+    usermsg = ctx.message.content.split()
+
+    usermsg.remove(">verse")
+    if "in" in usermsg:
+        usermsg.remove("in")
+    champName = usermsg[0]
+    role = usermsg[1]
+
+    champList, win_rate, total_matches = get_ugg_stats(champName,role)
+
+    x, bestList, comfyList, playableList = getChampsOfUser(ctx)
+
+    totalList = []
+    for champ in bestList:
+        totalList.append(champ.lower())
+    for champ in comfyList:
+        totalList.append(champ.lower())
+    for champ in playableList:
+        totalList.append(champ.lower())
+
+    print(totalList)
+    print(bestList)
+    print(comfyList)
+    print(playableList)
+    try:
+        await ctx.message.channel.send("In **"+ str(role) + "**, **" + str(champList.pop(0)) + "** has a:")
+    except IndexError:
+        await ctx.message.channel.send("Nice typing bozo, you misspelt some shit in there.")
+        return
+    for i in range(len(champList)):
+        if champList[i].lower() in (champ.lower() for champ in totalList):
+            await ctx.message.channel.send("**" + str(win_rate[i]) + " winrate** against **" +str(champList[i]) + "** over **" + str(total_matches[i]) + "**. **<-- " + str(champList[i]).upper() + " IS IN YOUR LIST OF CHAMPS**")
+            continue
+        await ctx.message.channel.send("**" + str(win_rate[i]) + " winrate** against **" +str(champList[i]) + "** over **" + str(total_matches[i]) + "**.")
 #----------------------END OF LEAGUE----------------------
 
 
