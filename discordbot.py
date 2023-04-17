@@ -361,7 +361,7 @@ def getChampsOfUser(ctx):
     return x, bestChamps, comfyChamps, playableChamps
 
 @client.command()
-async def showCommands(ctx):
+async def cmds(ctx):
     channel = ctx.message.channel
     await channel.send('For league:\n\nVIEW CHAMPS: Type ">champs" to view all your champs.\n\nADD CHAMPS: Type ">addChamps best: champ1 champ2 ... comfortable: champ1 champ2 ... playable: champ1 champ2 ..." in that exact syntax.\n\nREMOVE CHAMPS: Type ">removeChamps champ1 champ2 champ3 ... from [best / comfortable / playable]"\n\nCLEAR ROWS: To clear a row of champs, Type ">clearChamps from [best / comfortable / playable / all]"\n\n COUNTERS: Type ">verse [champ name (NO SPACES OR APOSTROPHE)] in [role]"')
 
