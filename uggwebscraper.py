@@ -7,7 +7,10 @@ def get_ugg_stats(champName,role):
     #initialize web driver
     service = Service(executable_path=ChromeDriverManager().install())
     fuckerNames = {"chogath":"Cho'Gath", "masteryi":"Master Yi"}
-    with webdriver.Chrome(service=service) as driver: 
+    op = webdriver.ChromeOptions()
+    op.add_argument('headless')
+    #initialize web driver
+    with webdriver.Chrome(service=service, options=op) as driver:
         #navigate to the url
         if role == "":
             driver.get("https://u.gg/lol/champions/{}/build".format(champName.lower()))
