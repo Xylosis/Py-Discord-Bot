@@ -363,7 +363,7 @@ def getChampsOfUser(ctx):
 @client.command()
 async def cmds(ctx):
     channel = ctx.message.channel
-    await channel.send('For league:\n\nVIEW CHAMPS: Type ">champs" to view all your champs.\n\nADD CHAMPS: Type ">addChamps best: champ1 champ2 ... comfortable: champ1 champ2 ... playable: champ1 champ2 ..." in that exact syntax.\n\nREMOVE CHAMPS: Type ">removeChamps champ1 champ2 champ3 ... from [best / comfortable / playable]"\n\nCLEAR ROWS: To clear a row of champs, Type ">clearChamps from [best / comfortable / playable / all]"\n\n COUNTERS: Type ">verse [champ name (NO SPACES OR APOSTROPHE)] in [role]"')
+    await channel.send('For league:\n**Dont put the brackets ([]) in the actual command. If there are multiple things in them, choose one option inside of them.**\n\nVIEW CHAMPS: Type ">champs" to view all your champs.\n\nADD CHAMPS: Type ">addChamps best: champ1 champ2 ... comfortable: champ1 champ2 ... playable: champ1 champ2 ..." in that exact syntax.\n\nREMOVE CHAMPS: Type ">removeChamps champ1 champ2 champ3 ... from [best / comfortable / playable]"\n\nCLEAR ROWS: To clear a row of champs, Type ">clearChamps from [best / comfortable / playable / all]"\n\n COUNTERS: **Dont put the brackets "[]" in.**\nType ">verse [champ name (NO SPACES OR APOSTROPHE)] in [role]" \n\n INT LIST: **Dont put the brackets "[]" in.**\n  Type ">intlist show" to see the intlist\n Type ">intlist [add/remove] [summonername] to add/remove summoner to the list\nType: ">intlist check [YOUR summoner name]" to check if anyone in your active game is on the int list.')
 
 @client.command()
 async def champs(ctx):
@@ -596,7 +596,7 @@ async def verse(ctx):
 
 @client.command()
 async def intlist(ctx):
-    #>intlist add [summoner name] or >intlist check [your summoner name]
+    #>intlist add [summoner name] or >intlist check [your summoner name] or >intlist show or >intlist remove [summoner name]
     from opggwebscraper import get_opgg_stats
 
     usermsg = ctx.message.content.split()
@@ -616,11 +616,11 @@ async def intlist(ctx):
         if x[0] == None:
             continue
         allNames.append(x[0].lower())
-    print(allNames)
+    #print(allNames)
     userID = ctx.message.author.id
     if cmd.lower() == "add":
         summName = usermsg
-        print(usermsg)
+        #print(usermsg)
         Cursor = database.cursor(buffered=True)
         addsql = "INSERT INTO intlist (summoner_name) VALUES (%s)" #Insert authors discordID into database.
         Cursor.execute(addsql,[summName])
