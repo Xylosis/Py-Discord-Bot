@@ -593,6 +593,67 @@ async def verse(ctx):
             await ctx.message.channel.send("**" + str(win_rate[i]) + " winrate** against **" +str(champList[i]) + "** over **" + str(total_matches[i]) + "**. **<-- " + str(champList[i]).upper() + " IS IN YOUR LIST OF CHAMPS**")
             continue
         await ctx.message.channel.send("**" + str(win_rate[i]) + " winrate** against **" +str(champList[i]) + "** over **" + str(total_matches[i]) + "**.")
+
+@client.command()
+async def intlist(ctx):
+    #>intlist add [summoner name] or >intlist check [your summoner name]
+    from opggwebscraper import get_opgg_stats
+
+    usermsg = ctx.message.content.split()
+    usermsg.remove(">intlist")
+    cmd = usermsg[0]
+    usermsg.remove(cmd)
+    nameString = ""
+    for word in usermsg:
+        nameString += word
+        nameString += " "
+    usermsg = nameString[:-1]
+    allNames = []
+    Cursor = database.cursor(buffered=True)
+    checkSQL = "SELECT summoner_name from intlist"
+    Cursor.execute(checkSQL)
+    for x in Cursor:
+        if x[0] == None:
+            continue
+        allNames.append(x[0].lower())
+    print(allNames)
+    userID = ctx.message.author.id
+    if cmd.lower() == "add":
+        summName = usermsg
+        print(usermsg)
+        Cursor = database.cursor(buffered=True)
+        addsql = "INSERT INTO intlist (summoner_name) VALUES (%s)" #Insert authors discordID into database.
+        Cursor.execute(addsql,[summName])
+        database.commit()
+        await ctx.message.channel.send( "that dude '" +str(summName) + "' was successfully added to the int list.")
+    elif cmd.lower() == "check":
+        inted = False
+        summonerName = usermsg
+        ingameUsers = get_opgg_stats(summonerName)
+        if len(ingameUsers) == 0:
+            await ctx.message.channel.send(ctx.message.author.mention + ", you're not even in a game bro.")
+            return
+        for user in ingameUsers:
+            if user.lower() in allNames:
+                await ctx.message.channel.send("AYO THAT DUDE '**" +str(user) + "**' IS ON THE INT LIST. RUN IT DOWN!")
+                inted = True
+        if inted == False:
+            await ctx.message.channel.send("Nah, no one on ur games gotta lose, ur good, " + ctx.message.author.mention + ".")
+    elif cmd.lower() == "show":
+        stri = ""
+        for name in allNames:
+            stri += name
+            stri += ", "
+        stri = stri[:-2]
+        stri += "."
+        await ctx.message.channel.send("**Int List:** \n" + stri)
+    elif cmd.lower() == "remove":
+        summName = usermsg
+        removeSQL = "UPDATE intlist SET summoner_name = NULL WHERE summoner_name = (%s)"
+        Cursor = database.cursor(buffered=True)
+        Cursor.execute(removeSQL, [summName])
+        database.commit()
+        await ctx.message.channel.send( "that dude '" +str(summName) + "' was successfully removed to the int list. he free now.")
 #----------------------END OF LEAGUE----------------------
 
 
